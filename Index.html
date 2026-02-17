@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅行出發前檢查清單 V.8 - Terry LAM</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --sub-color: #7f8c8d;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --border-color: #dcdde1;
+            --text-color: #2f3640;
+            --btn-text: #ffffff;
+            --add-btn-bg: #f8f9fa;
+        }
+
+        /* 🌙 黑白高對比深色模式 */
+        body.dark-theme {
+            --primary-color: #ffffff;
+            --accent-color: #3498db;
+            --sub-color: #bdc3c7;
+            --bg-color: #000000;
+            --card-bg: #1a1a1a;
+            --border-color: #444444;
+            --text-color: #ffffff;
+            --btn-text: #000000;
+            --add-btn-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 10px 20px 40px 20px;
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+
+        .top-mode-controls {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1000px;
+            margin: 0 auto 10px auto;
+        }
+
+        .mode-btn {
+            background: var(--primary-color);
+            color: var(--btn-text);
+            border: 1px solid var(--primary-color);
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 1000px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-section { text-align: center; margin-bottom: 30px; }
+        
+        /* 標題與佔位符樣式 */
+        .main-title { 
+            font-size: 2rem;
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary-color);
+            padding: 5px 20px;
+            display: inline-block;
+            color: var(--primary-color);
+            outline: none;
+            min-width: 200px;
+        }
+        .main-title:empty:before {
+            content: attr(data-placeholder);
+            color: var(--sub-color);
+            font-weight: normal;
+            font-style: italic;
+            opacity: 0.5;
+            cursor: text;
+        }
+
+        .sub-header { 
+            font-size: 1.1rem;
+            color: var(--sub-color);
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .progress-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            width: 95%; 
+            margin: 20px auto;
+        }
+        .progress-container { flex: 1; background-color: var(--border-color); border-radius: 10px; height: 12px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background-color: var(--accent-color); transition: width 0.3s ease; }
+        #progress-text { font-size: 0.95rem; color: var(--accent-color); font-weight: bold; min-width: 85px; text-align: right; }
+
+        #main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            flex-grow: 1;
+        }
+        #main-content.mobile-layout { grid-template-columns: 1fr; }
+
+        .category { 
+            border: 1px solid var(--border-color); 
+            border-radius: 6px; 
+            padding: 18px; 
+            background: var(--card-bg);
+            display: flex;
+            flex-direction: column;
+            break-inside: avoid;
+        }
+
+        .category-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-left: 5px solid var(--primary-color);
+            padding-left: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-list { flex-grow: 1; }
+        .item { display: flex; align-items: flex-start; margin-bottom: 10px; }
+        input[type="checkbox"] { width: 18px; height: 18px; margin-right: 12px; margin-top: 3px; cursor: pointer; }
+        .editable-text { flex: 1; outline: none; border-bottom: 1px solid transparent; line-height: 1.5; font-size: 0.95rem; }
+        .checked-text { text-decoration: line-through; color: var(--sub-color) !important; opacity: 0.5; }
+
+        .add-item-btn {
+            background: var(--add-btn-bg);
+            border: 1px dashed var(--border-color);
+            color: var(--primary-color);
+            padding: 8px;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            border-radius: 4px;
+        }
+        .add-item-btn:hover { background: var(--primary-color); color: var(--btn-text); }
+
+        .action-bar {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .main-btn {
+            padding: 12px 10px;
+            font-size: 0.85rem;
+            background: var(--primary-color);
+            color: var(--btn-text);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .main-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        .del-btn, .del-cat-btn { border: none; background: none; cursor: pointer; color: #ccc; font-size: 0.9rem; }
+        .item:hover .del-btn, .category:hover .del-cat-btn { color: #999; }
+        .del-btn:hover, .del-cat-btn:hover { color: #e74c3c !important; }
+
+        @media print {
+            .top-mode-controls, .action-bar, .del-btn, .del-cat-btn, .add-item-btn, .progress-wrapper { display: none !important; }
+            body { background: white; color: black; padding: 0; }
+            .container { box-shadow: none; width: 100%; padding: 0; border:none; }
+            .category { border: 1px solid #000 !important; margin-bottom: 10px; }
+            #main-content { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 15px !important; }
+            .main-title:empty:before { content: ""; } /* 列印時隱藏提示文字 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="top-mode-controls">
+    <button class="mode-btn" onclick="toggleDarkMode()">🌓 深淺模式</button>
+    <button class="mode-btn" onclick="toggleLayout()">📱 顯示切換</button>
+</div>
+
+<div class="container">
+    <div class="header-section">
+        <div id="list-title" class="main-title" contenteditable="true" data-placeholder="在此輸入旅行標題..."></div>
+        <div class="sub-header">出發前檢查清單</div>
+        <div class="progress-wrapper">
+            <div class="progress-container"><div id="progress-bar"></div></div>
+            <div id="progress-text">0% 已完成</div>
+        </div>
+    </div>
+    
+    <div id="main-content"></div>
+
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="handleImport(this)">
+
+    <div class="action-bar">
+        <div class="btn-row">
+            <button class="main-btn" onclick="addCategory()" style="background: #27ae60; border-color: #27ae60; color: white;">＋ 新增分類</button>
+            <button class="main-btn" onclick="uncheckAll()" style="background: #7f8c8d; border-color: #7f8c8d; color: white;">🔓 全部取消勾選</button>
+        </div>
+        <div class="btn-row">
+            <button class="main-btn" onclick="exportAsText()" style="background: #e67e22; border-color: #e67e22; color: white;">📝 導出純文字</button>
+            <button class="main-btn" onclick="exportAsJSON()" style="background: #2980b9; border-color: #2980b9; color: white;">💾 備份 JSON</button>
+            <button class="main-btn" onclick="document.getElementById('importFile').click()" style="background: #8e44ad; border-color: #8e44ad; color: white;">📂 匯入 JSON</button>
+            <button class="main-btn" onclick="resetList()" style="background: #c0392b; border-color: #c0392b; color: white;">🔄 重設預設</button>
+            <button class="main-btn" onclick="window.print()" style="background: #2c3e50; border-color: #2c3e50; color: white;">🖨️ 列印 / PDF</button>
+        </div>
+    </div>
+
+    <div class="footer" style="text-align:center; margin-top:30px; font-size:0.8rem; color:var(--sub-color);">
+        設計者及版權所有 &copy; <span id="year"></span> <strong>Terry LAM</strong>. All Rights Reserved.
+    </div>
+</div>
+
+<script>
+    const initialData = [
+        { title: "證件與文件", items: ["護照 (確認有效期至少6個月以上)", "機票或電子機票確認單", "住宿酒店預訂確認單 (紙本備用)", "旅遊保險證明 (保單編號及緊急熱線)", "Visit Japan Web 登記並截圖 QR Code", "2日(48小時前)前完成預辦登機手續", "海外上網服務 (Sim卡已插入或儲存eSIM)"] },
+        { title: "金錢與支付", items: ["日圓現金 (¥　　　　　　)", "預先開通銀行海外提款功能", "信用卡 (VISA、Mastercard 各一)", "交通 IC 卡 (Suica / ICOCA)", "開通八達通 App 之 PayPay 功能"] },
+        { title: "電子設備", items: ["手機充電器及多孔轉接頭", "各類充電線 (手機、耳機、手錶)", "行動電源 (需有C認證，必須隨身帶上機)", "無線耳機及充電盒", "電鬚刀及其充電設備", "確認手機剩餘儲存空間充足"] },
+        { title: "衣物與個人用品", items: ["日常替換衣物 (參考當地氣溫)", "輕便外套或保溫外套 (洋蔥式穿法)", "酒店用即棄拖鞋 (機上亦適用)", "個人衛生用品 (洗頭水、牙刷、牙膏)", "沖涼用、洗臉用及溫泉用小毛巾", "常用藥物 (必利痛、感冒藥、保濟丸)", "雨傘 (輕便摺疊傘)", "防疫用品 (口罩、消毒用品、濕紙巾)"] },
+        { title: "文具與導航用品", items: ["交通地鐵鐵路路線圖 (可列印或下載)", "蓋印章用的記事本", "御朱印手帳 (如需參拜神社)", "書寫用的原子筆 (機上填表用)", "膠紙及剪刀 (注意：剪刀必須放進寄艙行李)", "下載離線地圖 (以備網路不穩時使用)"] },
+        { title: "其他注意事項", items: ["行程、保險副本及證件副本交給家人", "安裝旅行相關 App (Google Map, 翻譯等)", "確認家中水電、煤氣及窗戶已關好", "清理冰箱內易變壞的食物"] }
+    ];
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function loadData() {
+        const saved = localStorage.getItem('travelListData_v8');
+        const savedTitle = localStorage.getItem('travelListTitle_v8');
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        
+        // 如果有儲存過的標題才顯示，否則維持 HTML 裡的空狀態（觸發佔位符）
+        if (savedTitle) {
+            document.getElementById('list-title').innerText = savedTitle;
+        }
+        
+        if (isDark) document.body.classList.add('dark-theme');
+        return saved ? JSON.parse(saved) : initialData;
+    }
+
+    function saveData() {
+        const data = [];
+        document.querySelectorAll('.category').forEach(cat => {
+            const title = cat.querySelector('.category-title span').innerText;
+            const items = Array.from(cat.querySelectorAll('.item')).map(item => ({
+                text: item.querySelector('.editable-text').innerText,
+                checked: item.querySelector('input').checked
+            }));
+            data.push({ title, items });
+        });
+        localStorage.setItem('travelListData_v8', JSON.stringify(data));
+        // 儲存標題
+        localStorage.setItem('travelListTitle_v8', document.getElementById('list-title').innerText);
+        updateProgress();
+    }
+
+    function createItemNode(text, checked = false) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleStatus(this)">
+            <span class="editable-text ${checked ? 'checked-text' : ''}" contenteditable="true" oninput="saveData()">${text}</span>
+            <button class="del-btn" onclick="this.parentElement.remove(); saveData()">✕</button>
+        `;
+        return div;
+    }
+
+    function createCategory(title, items = []) {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'category';
+        catDiv.innerHTML = `
+            <div class="category-title">
+                <span contenteditable="true" oninput="saveData()">${title}</span>
+                <button class="del-cat-btn" onclick="if(confirm('確定刪除整個分類？')){this.closest('.category').remove(); saveData()}">✕</button>
+            </div>
+            <div class="item-list"></div>
+            <button class="add-item-btn" onclick="addItem(this)">＋ 增加項目</button>
+        `;
+        const list = catDiv.querySelector('.item-list');
+        items.forEach(it => list.appendChild(createItemNode(typeof it === 'string' ? it : it.text, it.checked || false)));
+        return catDiv;
+    }
+
+    function addItem(btn) {
+        btn.previousElementSibling.appendChild(createItemNode(""));
+        saveData();
+    }
+
+    function addCategory() {
+        document.getElementById('main-content').appendChild(createCategory("新分類"));
+        saveData();
+    }
+
+    function toggleStatus(cb) {
+        cb.nextElementSibling.classList.toggle('checked-text', cb.checked);
+        saveData();
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-theme');
+        localStorage.setItem('darkMode', document.body.classList.contains('dark-theme'));
+    }
+
+    function toggleLayout() {
+        document.getElementById('main-content').classList.toggle('mobile-layout');
+    }
+
+    function uncheckAll() {
+        if(confirm("確定要取消勾選所有項目嗎？")) {
+            document.querySelectorAll('input[type=\"checkbox\"]').forEach(cb => {
+                cb.checked = false;
+                cb.nextElementSibling.classList.remove('checked-text');
+            });
+            saveData();
+        }
+    }
+
+    function resetList() {
+        if(confirm("確定要恢復預設清單？現有內容將被覆蓋。")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    function updateProgress() {
+        const total = document.querySelectorAll('input[type="checkbox"]').length;
+        const checked = document.querySelectorAll('input[type="checkbox"]:checked').length;
+        const percent = total === 0 ? 0 : Math.round((checked / total) * 100);
+        document.getElementById('progress-bar').style.width = percent + "%";
+        document.getElementById('progress-text').innerText = percent + "% 已完成";
+    }
+
+    function exportAsText() {
+        let txt = `📋 ${document.getElementById('list-title').innerText || '未命名行程'}\n\n`;
+        document.querySelectorAll('.category').forEach(cat => {
+            txt += `【${cat.querySelector('.category-title span').innerText}】\n`;
+            cat.querySelectorAll('.item').forEach(it => {
+                const checked = it.querySelector('input').checked;
+                const text = it.querySelector('.editable-text').innerText;
+                txt += `${checked ? '✅' : '⬜'} ${text}\n`;
+            });
+            txt += `\n`;
+        });
+        downloadFile(txt, 'travel_list.txt', 'text/plain');
+    }
+
+    function exportAsJSON() {
+        const data = [];
+        document.querySelectorAll('.category').forEach(cat => {
+            const title = cat.querySelector('.category-title span').innerText;
+            const items = Array.from(cat.querySelectorAll('.item')).map(item => ({
+                text: item.querySelector('.editable-text').innerText,
+                checked: item.querySelector('input').checked
+            }));
+            data.push({ title, items });
+        });
+        downloadFile(JSON.stringify(data, null, 2), 'checklist_backup.json', 'application/json');
+    }
+
+    function handleImport(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (Array.isArray(data)) {
+                    localStorage.setItem('travelListData_v8', JSON.stringify(data));
+                    location.reload();
+                } else { alert("備份格式不正確。"); }
+            } catch (err) { alert("讀取檔案失敗。"); }
+        };
+        reader.readAsText(file);
+    }
+
+    function downloadFile(content, fileName, type) {
+        const blob = new Blob([content], {type: type});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.click();
+    }
+
+    const contentDiv = document.getElementById('main-content');
+    loadData().forEach(cat => contentDiv.appendChild(createCategory(cat.title, cat.items)));
+    document.getElementById('list-title').addEventListener('input', saveData);
+    updateProgress();
+</script>
+</body>
+</html>
